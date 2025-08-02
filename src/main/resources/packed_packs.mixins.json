@@ -13,6 +13,8 @@
     "PackSelectionModelAccessor",
     "PackSelectionModelMixin",
     "PackSelectionScreenAccessor",
-    "PackSelectionScreenMixin"
+    "PackSelectionScreenMixin",
+    "folders.FolderRepositorySourceMixin",
+    "folders.PackMixin"
   ]
 }
