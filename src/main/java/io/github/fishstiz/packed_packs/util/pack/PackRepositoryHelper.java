@@ -26,6 +26,7 @@ public class PackRepositoryHelper implements PackAssets {
     private final Path packDir;
     private final PackSelectionModel model;
     private final boolean resourcePacks;
+    private Map<String, ResourceLocation> staleIcons;
 
     public PackRepositoryHelper(PackRepository repository, Path packDir) {
         this.repository = repository;
@@ -227,8 +228,14 @@ public class PackRepositoryHelper implements PackAssets {
 
     @Override
     public void getOrLoadIcon(Pack pack, Consumer<ResourceLocation> iconCallback) {
-        ResourceLocation cachedIcon = this.cachedIcons.get(pack.getId());
+        if (this.staleIcons != null) {
+            ResourceLocation staleIcon = this.staleIcons.get(pack.getId());
+            if (staleIcon != null) {
+                iconCallback.accept(staleIcon);
+            }
+        }
 
+        ResourceLocation cachedIcon = this.cachedIcons.get(pack.getId());
         if (cachedIcon != null) {
             iconCallback.accept(cachedIcon);
         } else {
@@ -240,6 +247,7 @@ public class PackRepositoryHelper implements PackAssets {
     }
 
     public void clearIconCache() {
+        this.staleIcons = new Object2ObjectOpenHashMap<>(this.cachedIcons);
         this.cachedIcons.clear();
     }
 

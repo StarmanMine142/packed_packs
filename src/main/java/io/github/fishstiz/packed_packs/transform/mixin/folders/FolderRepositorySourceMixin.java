@@ -51,7 +51,7 @@ public abstract class FolderRepositorySourceMixin {
     private PackLocationInfo addDirInNestedPackId(PackLocationInfo location, @Local(argsOnly = true) Path path, @Share("nested") LocalBooleanRef nestedRef) {
         try {
             Path parent = path.getParent();
-            if (!Files.isSameFile(parent, this.folder) && Files.isSameFile(parent.getParent(), this.folder)) {
+            if (Files.isSameFile(parent.getParent(), this.folder)) {
                 nestedRef.set(true);
 
                 String folderName = nameFromPath(parent) + PackUtil.DIRECTORY_DELIMITER;

@@ -12,6 +12,12 @@ public class ConfigLoader {
     private ConfigLoader() {
     }
 
+    public static <T extends Serializable> T load(InputStream inputStream, Class<T> spec) throws IOException {
+        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
+            return GSON.fromJson(reader, spec);
+        }
+    }
+
     public static Config load(File file) {
         Config config = new Config();
 
@@ -28,7 +34,7 @@ public class ConfigLoader {
         return config;
     }
 
-    public static void save(Config config, File file) {
+    public static <T extends Serializable> void save(T config, File file) {
         try (FileWriter writer = new FileWriter(file)) {
             GSON.toJson(config, writer);
         } catch (IOException e) {
