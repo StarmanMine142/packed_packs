@@ -3,7 +3,6 @@ package io.github.fishstiz.packed_packs.gui.components.pack;
 import io.github.fishstiz.fidgetz.gui.components.FidgetzText;
 import io.github.fishstiz.fidgetz.gui.renderables.sprites.Sprite;
 import io.github.fishstiz.packed_packs.util.constants.Theme;
-import io.github.fishstiz.packed_packs.util.pack.FolderPack;
 import io.github.fishstiz.packed_packs.util.pack.PackAssets;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -71,14 +70,14 @@ class PackWidget extends AbstractWidget {
         }
     }
 
+    public int getContentLeft() {
+        return this.title.getX();
+    }
+
     protected void renderSprite(GuiGraphics guiGraphics, float partialTick) {
         if (!this.lazyLoaded) { // lazy loads icon as this is not called if not in view
             this.lazyLoaded = true;
             this.packAssets.getOrLoadIcon(this.pack, icon -> this.sprite = Sprite.of32(icon));
-
-            if (this.pack instanceof FolderPack folderPack) {
-                folderPack.loadConfig();
-            }
         }
 
         int x = this.getX() + this.spacing;

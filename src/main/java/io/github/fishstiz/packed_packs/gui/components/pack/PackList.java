@@ -5,6 +5,8 @@ import io.github.fishstiz.packed_packs.gui.history.Restorable;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.server.packs.repository.Pack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +16,7 @@ import java.util.List;
 
 import static io.github.fishstiz.packed_packs.util.lang.ObjectsUtil.testNullable;
 
-public interface PackList extends ContainerEventHandler, Restorable<PackList.Snapshot> {
+public interface PackList extends ContainerEventHandler, LayoutElement, Restorable<PackList.Snapshot> {
     void add(Pack pack);
 
     void addAll(List<Pack> packs);
@@ -56,6 +58,11 @@ public interface PackList extends ContainerEventHandler, Restorable<PackList.Sna
     @NotNull ImmutableList<Pack> copySelection();
 
     @NotNull Query copyQuery();
+
+    @Override
+    default @NotNull ScreenRectangle getRectangle() {
+        return LayoutElement.super.getRectangle();
+    }
 
     default @NotNull Snapshot captureState() {
         return new Snapshot(this, this.copyPacks(), this.copySelection(), this.copyQuery());

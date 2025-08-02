@@ -38,7 +38,6 @@ public class ToggleableDialog<T extends LayoutElement> extends AbstractContainer
     private final List<NarratableEntry> narratables = new ArrayList<>();
     private final List<Consumer<Boolean>> listeners = new ArrayList<>();
     private final T root;
-    private final GuiRectangle boundingBox;
     private final RenderableRect backdrop;
     private final RenderableRect background;
     private final boolean autoClose;
@@ -49,6 +48,7 @@ public class ToggleableDialog<T extends LayoutElement> extends AbstractContainer
     private final boolean captureFocus;
     private final boolean focusOnOpen;
     private @Nullable NarratableEntry lastNarratable;
+    private GuiRectangle boundingBox;
     private boolean open = false;
     private boolean hovered;
 
@@ -134,6 +134,18 @@ public class ToggleableDialog<T extends LayoutElement> extends AbstractContainer
         return listener;
     }
 
+    public void setBoundingBox(GuiRectangle boundingBox) {
+        this.boundingBox = Objects.requireNonNull(boundingBox);
+    }
+
+    public void setBoundingBox(LayoutElement boundingBox) {
+        this.setBoundingBox(GuiRectangle.viewOf(boundingBox));
+    }
+
+    public GuiRectangle getBoundingBox() {
+        return this.boundingBox;
+    }
+
     public boolean shouldCloseOnEscape() {
         return this.closeOnEscape;
     }
@@ -206,7 +218,7 @@ public class ToggleableDialog<T extends LayoutElement> extends AbstractContainer
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
-        return this.isOpen();
+        return (this.isOpen() && (this.isCaptureClick() || this.isCaptureFocus())) || this.isMouseOverBounds(mouseX, mouseY);
     }
 
     @Override

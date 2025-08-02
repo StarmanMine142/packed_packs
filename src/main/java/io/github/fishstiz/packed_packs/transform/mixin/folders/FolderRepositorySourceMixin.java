@@ -7,6 +7,8 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import io.github.fishstiz.packed_packs.PackedPacks;
 import io.github.fishstiz.packed_packs.transform.interfaces.NestedPack;
+import io.github.fishstiz.packed_packs.util.pack.FolderPack;
+import io.github.fishstiz.packed_packs.util.pack.PackAssets;
 import io.github.fishstiz.packed_packs.util.pack.PackUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
@@ -15,6 +17,7 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackDetector;
 import net.minecraft.world.level.validation.DirectoryValidator;
 import net.minecraft.world.level.validation.ForbiddenSymlinkInfo;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -92,9 +95,11 @@ public abstract class FolderRepositorySourceMixin {
             List<ForbiddenSymlinkInfo> list,
             Operation<Object> original,
             @Local(argsOnly = true) DirectoryValidator validator,
-            @Local(argsOnly = true) BiConsumer<Path, Pack.ResourcesSupplier> output
+            @Local(argsOnly = true) BiConsumer<Path, Pack.ResourcesSupplier> output,
+            @Share("suppressLog") LocalBooleanRef suppressLogRef
     ) {
         if (Files.isDirectory(path) && !PackUtil.hasMcmeta(path)) {
+            suppressLogRef.set(true);
             boolean isRoot = !IS_DISCOVERING_CHILD.get();
             try {
                 if (isRoot) {
@@ -111,6 +116,17 @@ public abstract class FolderRepositorySourceMixin {
         }
 
         return original.call(instance, path, list);
+    }
+
+    @WrapOperation(method = "discoverPacks", at = @At(
+            value = "INVOKE",
+            target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V",
+            remap = false
+    ))
+    private static void suppressLogOnFolderDiscovery(Logger instance, String s, Object o, Operation<Void> original, @Share("suppressLog") LocalBooleanRef suppressLogRef) {
+        if (!suppressLogRef.get() && !(o instanceof Path p && (p.endsWith(FolderPack.FOLDER_CONFIG_FILENAME) || p.endsWith(PackAssets.ICON_FILENAME)))) {
+            original.call(instance, s, o);
+        }
     }
 
     @Shadow

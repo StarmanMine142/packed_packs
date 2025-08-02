@@ -5,7 +5,6 @@ import io.github.fishstiz.packed_packs.config.Folder;
 import io.github.fishstiz.packed_packs.transform.interfaces.NestedPack;
 import io.github.fishstiz.packed_packs.util.ResourceUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.*;
@@ -41,8 +40,6 @@ public final class FolderPack extends Pack implements NestedPack {
     );
     public static final PackSelectionConfig FOLDER_SELECTION_CONFIG = new PackSelectionConfig(false, Position.TOP, false);
     public static final Metadata FOLDER_METADATA = new Metadata(FOLDER_DESCRIPTION, PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), Collections.emptyList());
-    private Folder config;
-    private boolean loading;
 
     private FolderPack(PackLocationInfo packLocationInfo, Path parent) {
         super(packLocationInfo, new FolderResourcesSupplier(parent), FOLDER_METADATA, FOLDER_SELECTION_CONFIG);
@@ -52,34 +49,24 @@ public final class FolderPack extends Pack implements NestedPack {
         this(new PackLocationInfo(id, Component.literal(name), FOLDER_SOURCE, Optional.empty()), parent);
     }
 
-    public void loadConfig() {
-        if (!this.loading && this.config == null) {
-            this.loading = true;
-            CompletableFuture.runAsync(() -> {
-                try (PackResources resources = this.open()) {
-                    var configIoSupplier = resources.getRootResource(FOLDER_CONFIG_FILENAME);
-
-                    if (configIoSupplier == null) {
-                        throw new IOException();
-                    }
-
-                    this.config = ConfigLoader.load(configIoSupplier.get(), Folder.class);
-                } catch (IOException e) {
-                    this.config = new Folder();
-                    this.saveConfig();
-                }
-            }).thenRunAsync(() -> this.loading = false, Minecraft.getInstance());
-        }
-    }
-
-    public @Nullable Folder getConfig() {
-        return this.config;
-    }
-
-    public void saveConfig() {
-        if (this.config != null) {
+    public CompletableFuture<Folder> loadConfig() {
+        return CompletableFuture.supplyAsync(() -> {
             try (PackResources resources = this.open()) {
-                ConfigLoader.save(this.config, ((FolderResources) resources).getRoot().resolve(FOLDER_CONFIG_FILENAME).toFile());
+                var configIoSupplier = resources.getRootResource(FOLDER_CONFIG_FILENAME);
+                if (configIoSupplier == null) {
+                    throw new IOException();
+                }
+                return ConfigLoader.load(configIoSupplier.get(), Folder.class);
+            } catch (IOException e) {
+                return new Folder();
+            }
+        });
+    }
+
+    public void saveConfig(Folder folder) {
+        if (folder != null) {
+            try (PackResources resources = this.open()) {
+                ConfigLoader.save(folder, ((FolderResources) resources).getRoot().resolve(FOLDER_CONFIG_FILENAME).toFile());
             }
         }
     }

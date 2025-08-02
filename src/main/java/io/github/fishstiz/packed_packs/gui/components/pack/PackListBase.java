@@ -3,17 +3,23 @@ package io.github.fishstiz.packed_packs.gui.components.pack;
 import com.google.common.collect.ImmutableList;
 import io.github.fishstiz.fidgetz.gui.components.AbstractDynamicList;
 import io.github.fishstiz.fidgetz.gui.components.ContainerEventHandlerPatch;
+import io.github.fishstiz.fidgetz.gui.components.FidgetzButton;
 import io.github.fishstiz.fidgetz.gui.renderables.ColoredRect;
+import io.github.fishstiz.fidgetz.gui.renderables.sprites.Sprite;
+import io.github.fishstiz.fidgetz.gui.shapes.Size;
 import io.github.fishstiz.fidgetz.util.GuiUtil;
 import io.github.fishstiz.packed_packs.compat.ModAdditions;
 import io.github.fishstiz.packed_packs.gui.components.events.PackListEventListener;
+import io.github.fishstiz.packed_packs.util.ResourceUtil;
 import io.github.fishstiz.packed_packs.util.constants.Theme;
 import io.github.fishstiz.packed_packs.gui.components.events.*;
+import io.github.fishstiz.packed_packs.util.pack.FolderPack;
 import io.github.fishstiz.packed_packs.util.pack.PackAssets;
 import net.minecraft.Util;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
@@ -34,11 +40,11 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
     protected static final int OFFSET_Y = 2;
     protected static final int ITEM_HEIGHT = 32;
     protected static final int ROW_GAP = 3;
+    protected final PackAssets packAssets;
     protected final List<Pack> packs = new ArrayList<>();
     private final List<Pack> queried = new ArrayList<>();
     private final List<Pack> selection = new ArrayList<>();
     private final PackListEventListener listener;
-    private final PackAssets packAssets;
     private final Query query;
 
     protected PackListBase(PackAssets packAssets, PackListEventListener listener) {
@@ -378,6 +384,10 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
         }
     }
 
+    private void openFolder(FolderPack folderPack) {
+        this.sendEvent(new FolderOpenEvent(this, folderPack));
+    }
+
     private @Nullable ComponentPath handleArrowNavigation(FocusNavigationEvent.ArrowNavigation arrowNavigation) {
         T entry = switch (arrowNavigation.direction()) {
             case UP -> this.getPreviousEntry();
@@ -472,6 +482,7 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
     public abstract class Entry extends AbstractDynamicList<T>.Entry implements PackList.Entry, ContainerEventHandlerPatch {
         private static final double DRAG_THRESHOLD = 1.0;
         private static final int DOUBLE_CLICK_DELTA_MS = 200;
+        private static final Sprite FOLDER_BUTTON_SPRITE = new Sprite(ResourceUtil.getIcon("hamburger"), Size.of16());
         protected static final int SPACING = 2;
         protected static final int BACKGROUND_OFFSET = 1;
         protected static final ColoredRect OVERLAY = new ColoredRect(Theme.WHITE.withAlpha(0.25F));
@@ -482,6 +493,7 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
         protected final List<NarratableEntry> narratables = new ArrayList<>();
         protected final Pack pack;
         private final PackWidget packWidget;
+        private FidgetzButton<Void> folderWidget;
         private long lastClickTime = 0;
         private MouseSelectionState mouseSelectionState = MouseSelectionState.INACTIVE;
 
@@ -498,6 +510,22 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
                     PackListBase.this.itemHeight,
                     SPACING
             ));
+
+            if (this.pack instanceof FolderPack folderPack) {
+                this.folderWidget = this.addTopRenderableOnly(this.prependWidget(
+                        FidgetzButton.<Void>builder()
+                                .setTooltip(Tooltip.create(ResourceUtil.getText("folder.open")))
+                                .setHeight(this.getHeight() / 3)
+                                .makeSquare()
+                                .setSpriteOnly(FOLDER_BUTTON_SPRITE)
+                                .setOnPress(btn -> {
+                                    btn.setFocused(false);
+                                    PackListBase.this.openFolder(folderPack);
+                                })
+                                .build()
+                ));
+            }
+
             ModAdditions.addToEntry(PackListBase.this.packAssets.isResourcePacks(), this);
         }
 
@@ -693,6 +721,10 @@ public abstract class PackListBase<T extends PackListBase<T>.Entry> extends Abst
         }
 
         protected void renderTop(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            if (this.folderWidget != null) {
+                this.folderWidget.setPosition(this.packWidget.getContentLeft(), this.getBottom() - this.folderWidget.getHeight());
+            }
+
             for (Renderable renderable : this.topRenderables) {
                 renderable.render(guiGraphics, mouseX, mouseY, partialTick);
             }

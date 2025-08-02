@@ -21,7 +21,7 @@ import static io.github.fishstiz.packed_packs.util.ResourceUtil.getVanillaSprite
 import static io.github.fishstiz.packed_packs.util.lang.ObjectsUtil.pick;
 import static java.util.Optional.ofNullable;
 
-public final class AvailablePackList extends PackListBase<AvailablePackList.Entry> {
+public class AvailablePackList extends PackListBase<AvailablePackList.Entry> {
     private static final Sprite SELECT_HIGHLIGHTED_SPRITE = Sprite.of32(getVanillaSprite("transferable_list/select_highlighted"));
     private static final Sprite SELECT_SPRITE = Sprite.of32(getVanillaSprite("transferable_list/select"));
     private static final Theme DROP_ZONE_THEME = Theme.RED_700;
@@ -37,7 +37,7 @@ public final class AvailablePackList extends PackListBase<AvailablePackList.Entr
     }
 
     private boolean isInvalidDrop(PackList source, ImmutableList<Pack> payload, Pack trigger) {
-        return source == this || payload.isEmpty() || !source.isTransferable(trigger);
+        return source == this || source instanceof FolderPackList || payload.isEmpty() || !source.isTransferable(trigger);
     }
 
     @Override

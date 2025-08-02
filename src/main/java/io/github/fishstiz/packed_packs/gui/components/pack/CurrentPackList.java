@@ -28,7 +28,7 @@ import static io.github.fishstiz.packed_packs.util.lang.IntsUtil.hasGap;
 import static io.github.fishstiz.packed_packs.util.lang.ObjectsUtil.pick;
 import static io.github.fishstiz.packed_packs.util.ResourceUtil.getVanillaSprite;
 
-public final class CurrentPackList extends PackListBase<CurrentPackList.Entry> {
+public class CurrentPackList extends PackListBase<CurrentPackList.Entry> {
     private static final Sprite UNSELECT_HIGHLIGHTED_SPRITE = Sprite.of32(getVanillaSprite("transferable_list/unselect_highlighted"));
     private static final Sprite UNSELECT_SPRITE = Sprite.of32(getVanillaSprite("transferable_list/unselect"));
     private static final Sprite MOVE_UP_HIGHLIGHTED_SPRITE = Sprite.of32(getVanillaSprite("transferable_list/move_up_highlighted"));
@@ -119,7 +119,7 @@ public final class CurrentPackList extends PackListBase<CurrentPackList.Entry> {
     }
 
     private boolean canDrop(PackList source, ImmutableList<Pack> payload, Pack trigger, double mouseX, double mouseY) {
-        if (this.scrolling || this.isQueried() || payload.isEmpty()) {
+        if (this.scrolling || this.isQueried() || payload.isEmpty() || (source != this && source instanceof FolderPackList)) {
             return false;
         }
 
@@ -201,7 +201,7 @@ public final class CurrentPackList extends PackListBase<CurrentPackList.Entry> {
 
     @Override
     public void renderDroppableZone(GuiGraphics guiGraphics, PackList source, ImmutableList<Pack> payload, Pack trigger, int mouseX, int mouseY, float partialTick) {
-        if (this.isQueried()) return;
+        if (this.isQueried() || (source != this && source instanceof FolderPackList)) return;
 
         int x = this.getX();
         int y = this.getY();
@@ -232,7 +232,7 @@ public final class CurrentPackList extends PackListBase<CurrentPackList.Entry> {
     }
 
     public class Entry extends PackListBase<Entry>.Entry {
-        private Entry(Pack pack, int index) {
+        protected Entry(Pack pack, int index) {
             super(pack, index);
         }
 
