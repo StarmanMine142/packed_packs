@@ -5,6 +5,7 @@ import io.github.fishstiz.fidgetz.gui.renderables.sprites.ButtonSprites;
 import io.github.fishstiz.fidgetz.gui.renderables.sprites.Sprite;
 import io.github.fishstiz.fidgetz.gui.shapes.Size;
 import io.github.fishstiz.packed_packs.util.ResourceUtil;
+import io.github.fishstiz.packed_packs.util.pack.FolderPack;
 import io.github.fishstiz.packed_packs.util.pack.PackUtil;
 import net.fabricmc.fabric.impl.resource.loader.BuiltinModResourcePackSource;
 import net.minecraft.client.gui.components.Tooltip;
@@ -148,7 +149,7 @@ public class Query {
 
             @SuppressWarnings("unchecked")
             ComparatorFactory<T> factory = (ComparatorFactory<T>) this.comparatorFactory;
-            Comparator<Pack> comparator = factory.createComparator(arg);
+            Comparator<Pack> comparator = ComparatorFactory.folderFirst(factory.createComparator(arg));
 
             if (!factory.isDynamic()) {
                 this.cachedComparator = comparator;
@@ -173,6 +174,12 @@ public class Query {
 
             default boolean isDynamic() {
                 return false;
+            }
+
+            static Comparator<Pack> folderFirst(Comparator<Pack> base) {
+                return Comparator
+                        .comparing((Pack pack) -> !(pack instanceof FolderPack))
+                        .thenComparing(base);
             }
 
             static <T> ComparatorFactory<T> createDynamic(ComparatorFactory<T> factory) {

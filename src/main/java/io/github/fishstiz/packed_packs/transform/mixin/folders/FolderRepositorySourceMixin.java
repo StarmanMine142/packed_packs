@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import io.github.fishstiz.packed_packs.PackedPacks;
 import io.github.fishstiz.packed_packs.transform.interfaces.NestedPack;
 import io.github.fishstiz.packed_packs.util.pack.PackUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
@@ -52,8 +53,16 @@ public abstract class FolderRepositorySourceMixin {
             Path parent = path.getParent();
             if (!Files.isSameFile(parent, this.folder) && Files.isSameFile(parent.getParent(), this.folder)) {
                 nestedRef.set(true);
-                String id = PackUtil.FILE_PREFIX + nameFromPath(parent) + PackUtil.DIRECTORY_DELIMITER + nameFromPath(path);
-                return new PackLocationInfo(id, location.title(), location.source(), location.knownPackInfo());
+
+                String folderName = nameFromPath(parent) + PackUtil.DIRECTORY_DELIMITER;
+                String id = PackUtil.FILE_PREFIX + folderName + nameFromPath(path);
+
+                return new PackLocationInfo(
+                        id,
+                        Component.literal(folderName).append(location.title()),
+                        location.source(),
+                        location.knownPackInfo()
+                );
             }
         } catch (IOException ignore) {
         }

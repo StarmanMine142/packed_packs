@@ -1,7 +1,10 @@
 package io.github.fishstiz.packed_packs.transform.interfaces;
 
 public interface NestedPack {
-    boolean packed_packs$nestedPack();
+    default boolean packed_packs$nestedPack() {
+        return false;
+    }
 
-    void packed_packs$setNestedPack(boolean nested);
+    default void packed_packs$setNestedPack(boolean nested) {
+    }
 }

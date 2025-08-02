@@ -420,7 +420,7 @@ public class PackedPacksScreen extends PackListEventHandler implements Toggleabl
 
     public void updateProfile(@Nullable Profile profile) {
         if (profile != null) {
-            profile.setPacks(this.currentPacks.getList().copyPacks());
+            profile.setPacks(this.repository.flattenPacks(this.currentPacks.getList().copyPacks()));
         }
     }
 

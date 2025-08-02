@@ -23,7 +23,7 @@ class PackWidget extends AbstractWidget {
             .alignLeft()
             .build();
     private MultiLineLabel description;
-    private Sprite sprite = Sprite.of32(PackAssets.DEFAULT_ICON);
+    private Sprite sprite;
     private final int spacing;
     private boolean lazyLoaded = false;
 
@@ -34,6 +34,7 @@ class PackWidget extends AbstractWidget {
         this.packAssets = packAssets;
         this.title.setMessage(pack.getTitle());
         this.spacing = spacing;
+        this.sprite = Sprite.of32(PackAssets.getDefaultIcon(pack));
 
         this.cacheDescription();
     }

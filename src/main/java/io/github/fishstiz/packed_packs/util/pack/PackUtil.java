@@ -17,14 +17,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class PackUtil {
+    public static final String FILE_PREFIX = "file/";
+    public static final String FILE_PREFIX_REGEX = "^" + Pattern.quote(FILE_PREFIX);
+    public static final String DIRECTORY_DELIMITER = "/";
+
     private PackUtil() {
     }
-
-    public static final String FILE_PREFIX = "file/";
-
-    public static final String FILE_PREFIX_REGEX = "^" + Pattern.quote(FILE_PREFIX);
-
-    public static final String DIRECTORY_DELIMITER = "/";
 
     public static boolean isFile(Pack pack) {
         return pack.getId().startsWith(FILE_PREFIX);
@@ -34,16 +32,24 @@ public class PackUtil {
         return StringUtils.substringBetween(pack.getId(), DIRECTORY_DELIMITER);
     }
 
+    public static String getFileName(String packId) {
+        return packId.replaceFirst(FILE_PREFIX_REGEX, "");
+    }
+
     public static String getFileName(Pack pack) {
         return ((NestedPack) pack).packed_packs$nestedPack()
                 ? pack.getId().replaceFirst(FILE_PREFIX_REGEX + ".*" + Pattern.quote(DIRECTORY_DELIMITER), "")
-                : pack.getId().replaceFirst(FILE_PREFIX_REGEX, "");
+                : getFileName(pack.getId());
+    }
+
+    public static Path getPath(Path root, String packId) {
+        return root.resolve(getFileName(packId));
     }
 
     public static Path getPath(Path root, Pack pack) {
         return ((NestedPack) pack).packed_packs$nestedPack()
                 ? root.resolve(getSubdirectoryName(pack)).resolve(getFileName(pack))
-                : root.resolve(getFileName(pack));
+                : getPath(root, getFileName(pack));
     }
 
     public static long getLastUpdatedEpochMs(Path root, Pack pack) {
